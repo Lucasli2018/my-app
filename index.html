@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="VwiVM7V2Yq9zqDkzzhzEEM">
+<head data-page-node-id="tZbuKetK7TMEw6Aeg948vS">
+<meta charset="UTF-8" data-page-node-id="6V4NlGQa5vFmS4kIzznxBM" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="QoHEOS5QA1ts6YL2E5DhvX" />
+<title>🐱 发布小工具 · 网页版</title>
+<style>
+  :root{
+    --coral:#FF7A45; --coral-deep:#F4602E; --coral-soft:#FFF1E9;
+    --bg:#FFF9F5; --card:#FFFFFF; --text:#3A2E2A; --muted:#9A8A82;
+    --line:#FFD9C7; --green:#2FBF71; --red:#E8553B; --blue:#3B82F6;
+    --shadow:0 8px 24px rgba(255,122,69,.14); --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:linear-gradient(180deg,#FFF6F0 0%,#FFF9F5 40%);color:var(--text);min-height:100vh}
+  header{padding:22px 28px 14px;text-align:center}
+  header h1{margin:0;font-size:26px;letter-spacing:.5px}
+  header p{margin:6px 0 0;color:var(--muted);font-size:13px}
+  .tabs{display:flex;gap:8px;justify-content:center;margin:14px 0 4px;flex-wrap:wrap}
+  .tab{padding:9px 20px;border:none;border-radius:999px;background:var(--card);color:var(--muted);
+    font-size:14px;cursor:pointer;box-shadow:var(--shadow);font-weight:600;transition:.15s}
+  .tab.active{background:var(--coral);color:#fff}
+  .wrap{max-width:880px;margin:0 auto;padding:12px 18px 60px}
+  .panel{display:none}
+  .panel.active{display:block}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:18px}
+  .card h2{margin:0 0 14px;font-size:17px;display:flex;align-items:center;gap:8px}
+  label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px;font-weight:600}
+  input[type=text],input[type=password],input[type=number]{
+    width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:12px;
+    font-size:14px;background:#fff;color:var(--text);outline:none;transition:.15s}
+  input:focus{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-soft)}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row > div{flex:1;min-width:200px}
+  .pw-wrap{position:relative}
+  .pw-wrap .eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;
+    border:none;background:none;font-size:16px;color:var(--muted)}
+  button.btn{background:var(--coral);color:#fff;border:none;border-radius:12px;padding:11px 18px;
+    font-size:14px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);transition:.15s}
+  button.btn:hover{background:var(--coral-deep)}
+  button.btn.ghost{background:#fff;color:var(--coral);border:1.5px solid var(--line)}
+  button.btn:disabled{opacity:.5;cursor:not-allowed}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6}
+  .drop{border:2.5px dashed var(--line);border-radius:var(--radius);padding:30px;text-align:center;
+    color:var(--muted);cursor:pointer;transition:.15s;background:var(--coral-soft)}
+  .drop:hover,.drop.over{border-color:var(--coral);background:#fff;color:var(--coral-deep)}
+  .drop b{color:var(--coral-deep)}
+  .fileinfo{font-size:13px;color:var(--text);margin-top:10px;display:none}
+  .fileinfo.show{display:block}
+  .checks{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0}
+  .chk{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:600;cursor:pointer}
+  .chk input{width:18px;height:18px;accent-color:var(--coral)}
+  .task{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:14px}
+  .task .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .task .name{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+  .badge{font-size:12px;padding:3px 11px;border-radius:999px;font-weight:700;white-space:nowrap}
+  .b-queue{background:#EDE7E3;color:#8a7c74}
+  .b-run{background:#FFF1E9;color:var(--coral-deep)}
+  .b-ok{background:#E4F8EE;color:var(--green)}
+  .b-fail{background:#FDE7E2;color:var(--red)}
+  .bar{height:8px;border-radius:999px;background:var(--coral-soft);overflow:hidden;margin:12px 0 8px}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--coral),var(--coral-deep));transition:width .3s}
+  .log{background:#2b211c;color:#f3e9e3;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;
+    border-radius:12px;padding:12px;max-height:200px;overflow:auto;white-space:pre-wrap;line-height:1.55}
+  .log .ok{color:#7CE0A8}.log .err{color:#FF8C72}.log .warn{color:#FFD27A}.log .info{color:#cdbdb2}
+  .log a{color:#7CC4FF}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--coral-soft)}
+  th{color:var(--muted);font-weight:700}
+  a.link{color:var(--blue);text-decoration:none;font-weight:600}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:#3A2E2A;color:#fff;
+    padding:12px 22px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:99;box-shadow:var(--shadow)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .sec-title{font-size:13px;color:var(--coral-deep);font-weight:800;margin:18px 0 4px;letter-spacing:.5px}
+  .muted{color:var(--muted)}
+  code{background:var(--coral-soft);padding:2px 6px;border-radius:6px;font-size:12px}
+</style>
+</head>
+<body data-page-node-id="CzBOaLiCuNGAcIfG0Go05I">
+<header data-page-node-id="XHPmoWzYJBM0IPADBve62d">
+  <h1 data-page-node-id="1CDF7Kx7L0SeRzPFI0LaqF">🐱 发布小工具 · 网页版</h1>
+  <p data-page-node-id="O6kAOX7kUJicRHaakZxBUM">纯浏览器运行 · 零后端 · 把本地项目一键发布到 Gitee / GitHub / Cloudflare Pages</p>
+</header>
+<div class="tabs" data-page-node-id="WqAwluN9cEKpKEHdWSHC76">
+  <button class="tab active" data-tab="publish" data-page-node-id="ehRwTYKFCPIXfJWmSeJjli">🚀 发布</button>
+  <button class="tab" data-tab="settings" data-page-node-id="NCHtiv7mVZBYO7FQycy0mS">⚙️ 设置</button>
+  <button class="tab" data-tab="history" data-page-node-id="HZTZQVBpVOXj8CGlQbBhGn">📜 历史</button>
+</div>
+
+<div class="wrap" data-page-node-id="RP23kbh32rJIjF1tabKJIW">
+  <!-- ============ 发布 ============ -->
+  <section class="panel active" id="panel-publish" data-page-node-id="XcON55O5zAEjEmr3LTYTJi">
+    <div class="card" data-page-node-id="8dFFGLOaWJUFn5jFdd8dDt">
+      <h2 data-page-node-id="t6Hgb1fnD41d9PJB2Gl9y8">① 选择本地项目</h2>
+      <div class="drop" id="drop" data-page-node-id="GtQgnYDScFbxdWzBR3dsQN">
+        📁 点击选择<b data-page-node-id="zJu4Fqenl5vR4jBFwuxL41">文件夹</b>，或把文件夹 / 文件<b data-page-node-id="qPAizNRXWdlGpf8MC9PxTH">拖拽</b>到这里<br data-page-node-id="npm6SJgKtWy2qHaHgD8AK1"/>
+        <span style="font-size:12px" data-page-node-id="psO6hEB9FMOsBhtQKj5ywM">（也可<a id="pickFiles" style="color:var(--coral-deep);cursor:pointer;text-decoration:underline" data-page-node-id="jmcclnGFOwDy7RVZUEM5JX">选择多个文件</a>）</span>
+      </div>
+      <input type="file" id="folderInput" webkitdirectory directory multiple style="display:none" data-page-node-id="PCMKrEw3iaZGBiljYMZ8PG" />
+      <input type="file" id="filesInput" multiple style="display:none" data-page-node-id="X4SS60SLczN6Q08BCa3spK" />
+      <div class="fileinfo" id="fileInfo" data-page-node-id="HTOsKqObW8k2PqRGtncHlD"></div>
+      <div class="hint" id="dropWarn" data-page-node-id="ge7OzsVQcZGzyBFQ46kYSS"></div>
+    </div>
+
+    <div class="card" data-page-node-id="OvivUbBfyLGLHbse1fDZM7">
+      <h2 data-page-node-id="fPOBNuCHb3VUtImeboZ0u1">② 选择平台与名称</h2>
+      <div class="checks" data-page-node-id="70MxFi5FjNOrG7bxeSGEkP">
+        <label class="chk" data-page-node-id="Hd9npJqX64047HyA6FS68A"><input type="checkbox" id="pGitee" checked data-page-node-id="8kY7542UoO4KGcEqDuQoQB" /> 🐞 Gitee</label>
+        <label class="chk" data-page-node-id="ISAOvDQp2f5qGBIY4F0Gzx"><input type="checkbox" id="pGithub" checked data-page-node-id="cK2i6quuoYbNB3TR5AIENm" /> 🐙 GitHub</label>
+        <label class="chk" data-page-node-id="aPCS8IiwIXYB2QllRom0my"><input type="checkbox" id="pCf" checked data-page-node-id="cjCCcxQ9yLJb9XdOFuQyvx" /> ☁️ Cloudflare Pages</label>
+      </div>
+      <label data-page-node-id="QX0DFVcsCg3wR55efwjDRD">仓库 / 项目名（默认取文件夹名，会自动修正为合法名称）</label>
+      <input type="text" id="repoName" placeholder="my-awesome-project" data-page-node-id="0iIFWZET8jKB1y8uuFBY3K" />
+      <div class="row" id="cfExtra" data-page-node-id="t7GuFTngJRbyHWFwU0Uf1S">
+        <div data-page-node-id="LQ4QYIq7p4uOsiVQEFXQ3a">
+          <label data-page-node-id="qxoWleTCryqCm6CzQZLVGv">Cloudflare 部署目录（相对路径，留空=整个文件夹）</label>
+          <input type="text" id="cfDir" placeholder="如 dist / build（可留空）" data-page-node-id="6XI62FGdMVluopBpDdPz4H" />
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap" data-page-node-id="CiHCQgdzj2g99TDgOaDPkT">
+        <button class="btn" id="startBtn" data-page-node-id="WY4q8xBkJ4FFzmdO6im838">🚀 开始发布</button>
+        <span class="hint" id="globalHint" data-page-node-id="7ekPIhyKl8eRFSzSjjS5ju">未配置令牌？先去「⚙️ 设置」填写各平台 Token。</span>
+      </div>
+    </div>
+
+    <div id="tasks" data-page-node-id="i0GuDNIoUK5DektkUbVhFZ"></div>
+  </section>
+
+  <!-- ============ 设置 ============ -->
+  <section class="panel" id="panel-settings" data-page-node-id="A0YzMyXm0ykffK8kwpfSZx">
+    <div class="card" data-page-node-id="13H9DuQZJ9qFcnQzp28apx">
+      <h2 data-page-node-id="esEbNpJVz2X7wN38mDAfk6">⚙️ 平台凭据</h2>
+      <div class="sec-title" data-page-node-id="fl8vPqvlXYCSJ6walzBISN">🐞 Gitee</div>
+      <div class="row" data-page-node-id="pGMEpWbm1tIfxx5FjiSHKO">
+        <div data-page-node-id="rCAwn2HwamHfI9wW1N6CvJ"><label data-page-node-id="plAsdGL2QsI1yC2ABOG3dO">用户名（可选，留空自动解析）</label><input type="text" id="sGiteeUser" placeholder="如 li-luoqiang" data-page-node-id="iByk7WNL7suywmM4U7Q38L" /></div>
+        <div data-page-node-id="OyUMFR5NG19MfN1wudI6gN"><label data-page-node-id="mYxLE7SYdGmxDdae0JkFlR">私人令牌 Private Token</label>
+          <div class="pw-wrap" data-page-node-id="KuPrn73CU4EsEKPHqo40Es"><input type="password" id="sGiteeToken" placeholder="gitee 私人令牌" data-page-node-id="5YgE9pcSClmb0oNFgcrXCp" /><button class="eye" data-eye="sGiteeToken" data-page-node-id="aka8WFKAPwfPGH6GIRQzpG">👁</button></div>
+        </div>
+      </div>
+      <button class="btn ghost" id="testGitee" style="margin-top:10px" data-page-node-id="Gv6t2BkDEDj7whYCDnKXO9">测试连接</button>
+
+      <div class="sec-title" data-page-node-id="yl9WZWd6YAvzwG0PM1rrJ6">🐙 GitHub</div>
+      <div class="row" data-page-node-id="pq4BLrC5lwWwqjEB6wlZPq">
+        <div data-page-node-id="ukasraEhKkCAOYxLXowQJl"><label data-page-node-id="ZkgHRIEiVYb2hKsB3CyjSs">用户名（可选，留空自动解析）</label><input type="text" id="sGithubUser" placeholder="如 octocat" data-page-node-id="O9JNGWMTYIO2P15xm1yafa" /></div>
+        <div data-page-node-id="eSyG25UHsVMxKWlcYTU40P"><label data-page-node-id="sCgDgld3Z6jRj9EkpLjEXB">Personal Access Token</label>
+          <div class="pw-wrap" data-page-node-id="qqHYEzwbAz1WDsaUgrcHTm"><input type="password" id="sGithubToken" placeholder="ghp_... 需 repo 权限" data-page-node-id="fhFmqgGjn1Lmgsa6izF7JS" /><button class="eye" data-eye="sGithubToken" data-page-node-id="0S1fQOix18IVMfaN4yfpq4">👁</button></div>
+        </div>
+      </div>
+      <button class="btn ghost" id="testGithub" style="margin-top:10px" data-page-node-id="WvRKzgluGmGJsqCSIMuPAh">测试连接</button>
+
+      <div class="sec-title" data-page-node-id="G2lz5AaHTDa47hEBDqEZQK">☁️ Cloudflare Pages</div>
+      <div class="row" data-page-node-id="HwbLFNlSmjyHuM1UDXDhuf">
+        <div data-page-node-id="TBkHPFaA5BtTJzFT7rs7cJ"><label data-page-node-id="m2TWKOvi8KH1JaBSTnhzji">Account ID</label><input type="text" id="sCfAccount" placeholder="Cloudflare 账户 ID" data-page-node-id="mNBn9XJs2qZ3bgYP9xFx85" /></div>
+        <div data-page-node-id="byXIVjz3nnZmOhzZzI8gSE"><label data-page-node-id="6MMLB382Ne7X71fBUUgJsw">API Token（需 Pages 编辑权限）</label>
+          <div class="pw-wrap" data-page-node-id="uaP8AQ3oTZ31b2gFOeU6aB"><input type="password" id="sCfToken" placeholder="Cloudflare API Token" data-page-node-id="M5hfgo1WtpPkNv7IG5ob4L" /><button class="eye" data-eye="sCfToken" data-page-node-id="25J4nZ9iNKm9jDua9UzBSE">👁</button></div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px" data-page-node-id="4VscLuCQ7zbjH7fFE8gHhl">
+        <div style="flex:1" data-page-node-id="8EJaBUki9NLFaHt58CXkGz"><label data-page-node-id="ghcrBYxvPxQJvqHEwaBDL1">代理地址（必填 · 见下方说明）</label><input type="text" id="sCfProxy" placeholder="https://cf-proxy.xxx.workers.dev" data-page-node-id="AIMKsaxADwhIeHOtsctFyL" /></div>
+      </div>
+      <details style="margin-top:10px;font-size:13px" data-page-node-id="sc7DGup8i0WogAJ70CHGp3">
+        <summary style="cursor:pointer;color:var(--coral-deep)" data-page-node-id="q8RDevr6hzXXCnMci2boov">ⓘ 为何需要代理 / 如何部署转发 Worker</summary>
+        <div class="hint" style="margin-top:8px" data-page-node-id="WBijIhLFaMSC9ZVXyE9HHQ">
+          Cloudflare 官方 API（api.cloudflare.com）<strong data-page-node-id="iBmur3jCyyLd8DUsrbDZF7">不返回任何 CORS 头</strong>，浏览器无法直连（已实测确认）。
+          需部署一个极简 Worker 做转发并补上 CORS 头：<br data-page-node-id="Zkt6PUDQ9QQCQknoJDAKzM"/>
+          ① 打开 <code data-page-node-id="hp2YQasy1qJp1qfsfm1Ht7">dash.cloudflare.com</code> → <b data-page-node-id="hruXPG3K5yipORGeRG4iIk">Workers &amp; Pages</b> → 创建 Worker；<br data-page-node-id="h7hNGeeuoSmFnPGAh44fgV"/>
+          ② 粘贴以下代码并部署，把得到的地址填入上方「代理地址」：
+          <pre style="white-space:pre-wrap;background:var(--coral-soft);padding:8px;border-radius:8px;margin-top:6px" data-page-node-id="A93vStywtqaZfa4o4D7fAf">export default {
+  async fetch(request){
+    if(request.method==='OPTIONS') return new Response(null,{status:204,headers:{
+      'Access-Control-Allow-Origin':'*',
+      'Access-Control-Allow-Methods':'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+      'Access-Control-Allow-Headers':'Authorization,Content-Type'}});
+    const u=new URL(request.url);
+    const init={method:request.method,headers:request.headers};
+    if(!['GET','HEAD'].includes(request.method)) init.body=await request.arrayBuffer();
+    const resp=await fetch('https://api.cloudflare.com'+u.pathname+u.search, init);
+    const h=new Headers(resp.headers);
+    h.set('Access-Control-Allow-Origin','*');
+    h.set('Access-Control-Allow-Methods','GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    h.set('Access-Control-Allow-Headers','Authorization,Content-Type');
+    return new Response(resp.body,{status:resp.status,headers:h});
+  }
+}</pre>
+        </div>
+      </details>
+      <button class="btn ghost" id="testCf" style="margin-top:10px" data-page-node-id="9a6oGCBG8KH2YWKaKsvMRi">测试连接</button>
+
+      <div style="margin-top:18px;display:flex;gap:10px" data-page-node-id="NSyVjWHp9TUKFmmJWwcdbq">
+        <button class="btn" id="saveSettings" data-page-node-id="xkguReIXZCJuJs29DnKGDc">💾 保存设置</button>
+        <button class="btn ghost" id="clearSettings" data-page-node-id="wD8aeDCOwNiOIRpn2b7TID">清空</button>
+      </div>
+      <div class="hint" data-page-node-id="eekCUwRGJKUkOYuLu5rziW">
+        🔐 所有凭据仅保存在<strong data-page-node-id="rZd4FLPTMgbhVtl416oOvv">你当前浏览器</strong>的 localStorage 中，不会上传到任何服务器（除目标平台官方 API 外）。
+        换浏览器或清缓存会丢失，请妥善保管令牌。
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 历史 ============ -->
+  <section class="panel" id="panel-history" data-page-node-id="hhzD9gtFbxxnBdAkC9JjWh">
+    <div class="card" data-page-node-id="q1Po09MMKcXshoKrUJsxAw">
+      <h2 data-page-node-id="sXnoFFCEDzIJocVHJKWO7z">📜 发布历史</h2>
+      <div style="margin-bottom:10px" data-page-node-id="0BIMYwTzS5FCfxyUWLfuiR"><button class="btn ghost" id="clearHistory" data-page-node-id="OTMKW9fDthiPmuOEFKVxQt">清空历史</button></div>
+      <div id="historyBody" data-page-node-id="2s6LATnHdYEgqskA06XcBv"><div class="muted" data-page-node-id="HUfX7Woj4zaQ5MAsXeJmUN">暂无记录。</div></div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast" data-page-node-id="ADopK0K4mWXuMuuYXeXQnw"></div>
+
+<!-- ===================== 内联 BLAKE3（纯 JS，已与 Python 参考实现交叉验证） ===================== -->
+<script>
+(function (global) {
+  "use strict";
+  var OUT_LEN = 32, BLOCK_LEN = 64, CHUNK_LEN = 1024;
+  var CHUNK_START = 1, CHUNK_END = 2, PARENT = 4, ROOT = 8;
+  var IV = [0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
+            0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19];
+  var MSG_PERMUTATION = [2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8];
+  function mask32(x){return x>>>0;}
+  function add32(x,y){return ((x+y)>>>0);}
+  function rightrotate32(x,n){return (((x<<(32-n))>>>0)|(x>>>n))>>>0;}
+  function g(s,a,b,c,d,mx,my){
+    s[a]=add32(s[a],add32(s[b],mx));
+    s[d]=rightrotate32(s[d]^s[a],16);
+    s[c]=add32(s[c],s[d]);
+    s[b]=rightrotate32(s[b]^s[c],12);
+    s[a]=add32(s[a],add32(s[b],my));
+    s[d]=rightrotate32(s[d]^s[a],8);
+    s[c]=add32(s[c],s[d]);
+    s[b]=rightrotate32(s[b]^s[c],7);
+  }
+  function round(s,m){
+    g(s,0,4,8,12,m[0],m[1]);g(s,1,5,9,13,m[2],m[3]);
+    g(s,2,6,10,14,m[4],m[5]);g(s,3,7,11,15,m[6],m[7]);
+    g(s,0,5,10,15,m[8],m[9]);g(s,1,6,11,12,m[10],m[11]);
+    g(s,2,7,8,13,m[12],m[13]);g(s,3,4,9,14,m[14],m[15]);
+  }
+  function permute(m){var o=m.slice();for(var i=0;i<16;i++)m[i]=o[MSG_PERMUTATION[i]];}
+  function compress(cv,bw,counter,block_len,flags){
+    var lo=counter>>>0, hi=Math.floor(counter/0x100000000)>>>0;
+    var s=[cv[0],cv[1],cv[2],cv[3],cv[4],cv[5],cv[6],cv[7],
+          IV[0],IV[1],IV[2],IV[3],lo,hi,block_len,flags];
+    var b=bw.slice();
+    round(s,b);permute(b);round(s,b);permute(b);round(s,b);permute(b);
+    round(s,b);permute(b);round(s,b);permute(b);round(s,b);permute(b);round(s,b);
+    for(var i=0;i<8;i++){s[i]^=s[i+8];s[i+8]^=cv[i];}
+    return s;
+  }
+  function words_from_le(b){
+    var out=[];for(var i=0;i<b.length;i+=4)
+      out.push((b[i]|(b[i+1]<<8)|(b[i+2]<<16)|(b[i+3]<<24))>>>0);
+    return out;
+  }
+  function Output(icv,bw,counter,block_len,flags){
+    this.icv=icv;this.bw=bw;this.counter=counter;this.block_len=block_len;this.flags=flags;
+  }
+  Output.prototype.chaining_value=function(){
+    return compress(this.icv,this.bw,this.counter,this.block_len,this.flags).slice(0,8);
+  };
+  Output.prototype.root_output_bytes=function(length){
+    var out=[],i=0;
+    while(i<length){
+      var w=compress(this.icv,this.bw,Math.floor(i/64),this.block_len,this.flags|ROOT);
+      for(var j=0;j<w.length;j++){
+        var word=w[j]>>>0;var bytes=[word&0xff,(word>>>8)&0xff,(word>>>16)&0xff,(word>>>24)&0xff];
+        var take=Math.min(4,length-i);
+        for(var k=0;k<take;k++)out.push(bytes[k]);
+        i+=take;
+      }
+    }
+    return out;
+  };
+  function ChunkState(kw,cc,flags){
+    this.cv=kw.slice();this.chunk_counter=cc;this.block=new Uint8Array(BLOCK_LEN);
+    this.block_len=0;this.blocks_compressed=0;this.flags=flags;
+  }
+  ChunkState.prototype.len=function(){return BLOCK_LEN*this.blocks_compressed+this.block_len;};
+  ChunkState.prototype.start_flag=function(){return this.blocks_compressed===0?CHUNK_START:0;};
+  ChunkState.prototype.update=function(input){
+    var idx=0;
+    while(idx<input.length){
+      if(this.block_len===BLOCK_LEN){
+        var bw=words_from_le(this.block);
+        this.cv=compress(this.cv,bw,this.chunk_counter,BLOCK_LEN,this.flags|this.start_flag()).slice(0,8);
+        this.blocks_compressed++;this.block=new Uint8Array(BLOCK_LEN);this.block_len=0;
+      }
+      var want=BLOCK_LEN-this.block_len;var take=Math.min(want,input.length-idx);
+      this.block.set(input.subarray(idx,idx+take),this.block_len);
+      this.block_len+=take;idx+=take;
+    }
+  };
+  ChunkState.prototype.output=function(){
+    var bw=words_from_le(this.block);
+    return new Output(this.cv,bw,this.chunk_counter,this.block_len,this.flags|this.start_flag()|CHUNK_END);
+  };
+  function parent_output(lc,rc,kw,flags){
+    return new Output(kw,lc.concat(rc),0,BLOCK_LEN,PARENT|flags);
+  }
+  function Hasher(){
+    this.key_words=IV.slice();this.flags=0;
+    this.chunk_state=new ChunkState(this.key_words,0,this.flags);this.cv_stack=[];
+  }
+  Hasher.prototype.add_chunk_cv=function(nc,tc){
+    while((tc&1)===0){nc=parent_output(this.cv_stack.pop(),nc,this.key_words,this.flags).chaining_value();tc>>=1;}
+    this.cv_stack.push(nc);
+  };
+  Hasher.prototype.update=function(input){
+    var idx=0;
+    while(idx<input.length){
+      if(this.chunk_state.len()===CHUNK_LEN){
+        var cv=this.chunk_state.output().chaining_value();
+        var tc=this.chunk_state.chunk_counter+1;
+        this.add_chunk_cv(cv,tc);
+        this.chunk_state=new ChunkState(this.key_words,tc,this.flags);
+      }
+      var want=CHUNK_LEN-this.chunk_state.len();var take=Math.min(want,input.length-idx);
+      this.chunk_state.update(input.subarray(idx,idx+take));idx+=take;
+    }
+  };
+  Hasher.prototype.finalize=function(length){
+    length=length||OUT_LEN;var output=this.chunk_state.output();var r=this.cv_stack.length;
+    while(r>0){r--;output=parent_output(this.cv_stack[r],output.chaining_value(),this.key_words,this.flags);}
+    return output.root_output_bytes(length);
+  };
+  function bytes_to_hex(arr){var s="";for(var i=0;i<arr.length;i++)s+=("0"+(arr[i]&0xff).toString(16)).slice(-2);return s;}
+  function blake3(data){
+    var bytes=(typeof data==="string")?new TextEncoder().encode(data):data;
+    var h=new Hasher();h.update(bytes);return h.finalize(OUT_LEN);
+  }
+  function blake3hex(data){return bytes_to_hex(blake3(data));}
+  global.blake3=blake3;global.blake3hex=blake3hex;
+})(window);
+</script>
+
+<!-- ===================== 应用逻辑 ===================== -->
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const IGNORE = new Set([".git","node_modules",".workbuddy","__pycache__",".venv","venv",".idea",".DS_Store","env",".wrangler"]);
+const SET_KEY = "pubkit_web_settings";
+const HIS_KEY = "pubkit_web_history";
+
+/* ---------- 通用工具 ---------- */
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2600);}
+function bytesToBase64(bytes){let bin="";const CH=0x8000;for(let i=0;i<bytes.length;i+=CH)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));return btoa(bin);}
+function sanitize(name){let n=(name||"project").trim().toLowerCase().replace(/[^a-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"").replace(/-{2,}/g,"-");return n||"project";}
+function encPath(p){return p.split("/").map(encodeURIComponent).join("/");}
+function fmtSize(n){if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(1)+" KB";return (n/1048576).toFixed(2)+" MB";}
+async function req(method,url,opts={}){
+  const headers=Object.assign({},opts.headers||{});
+  const init={method,headers};
+  if(opts.body!==undefined)init.body=opts.body;
+  try{
+    const r=await fetch(url,init);
+    let json=null,text=null;
+    const ct=r.headers.get("content-type")||"";
+    if(ct.includes("application/json")){try{json=await r.json();}catch(e){}}
+    if(json===null)text=await r.text();
+    return {ok:r.ok,status:r.status,json,text};
+  }catch(e){return {ok:false,status:0,json:null,text:String(e&&e.message||e),net:true};}
+}
+
+/* ---------- 设置 ---------- */
+function loadSettings(){try{return JSON.parse(localStorage.getItem(SET_KEY))||{};}catch(e){return {};}}
+function saveSettingsObj(s){localStorage.setItem(SET_KEY,JSON.stringify(s));}
+function applySettingsToUI(){
+  const s=loadSettings();
+  $("sGiteeUser").value=s.gitee_user||""; $("sGiteeToken").value=s.gitee_token||"";
+  $("sGithubUser").value=s.github_user||""; $("sGithubToken").value=s.github_token||"";
+  $("sCfAccount").value=s.cf_account||""; $("sCfToken").value=s.cf_token||""; $("sCfProxy").value=s.cf_proxy||"";
+}
+function readSettingsFromUI(){
+  return {
+    gitee_user:$("sGiteeUser").value.trim(), gitee_token:$("sGiteeToken").value.trim(),
+    github_user:$("sGithubUser").value.trim(), github_token:$("sGithubToken").value.trim(),
+    cf_account:$("sCfAccount").value.trim(), cf_token:$("sCfToken").value.trim(), cf_proxy:$("sCfProxy").value.trim(),
+  };
+}
+
+/* ---------- 历史 ---------- */
+function loadHistory(){try{return JSON.parse(localStorage.getItem(HIS_KEY))||[];}catch(e){return [];}}
+function addHistory(entry){
+  const h=loadHistory();h.unshift(entry);if(h.length>200)h=h.slice(0,200);
+  localStorage.setItem(HIS_KEY,JSON.stringify(h));renderHistory();
+}
+function renderHistory(){
+  const h=loadHistory();const body=$("historyBody");
+  if(!h.length){body.innerHTML='<div class="muted">暂无记录。</div>';return;}
+  let html='<table><thead><tr><th>时间</th><th>平台</th><th>项目</th><th>状态</th><th>地址</th></tr></thead><tbody>';
+  for(const e of h){
+    const st=e.status==="success"?'<span style="color:var(--green)">成功</span>':'<span style="color:var(--red)">失败</span>';
+    const link=e.url?`<a class="link" href="${e.url}" target="_blank" rel="noopener">打开 ↗</a>`:'-';
+    html+=`<tr><td>${e.time}</td><td>${e.platform}</td><td title="${e.project}">${e.project}</td><td>${st}</td><td>${link}</td></tr>`;
+  }
+  html+='</tbody></table>';body.innerHTML=html;
+}
+
+/* ---------- 任务卡片 ---------- */
+function makeCard(label){
+  const wrap=$("tasks");
+  const el=document.createElement("div");el.className="task";
+  el.innerHTML=`<div class="top"><div class="name">${label}</div><span class="badge b-queue">排队中</span></div>
+    <div class="bar"><i></i></div><div class="log"></div>`;
+  wrap.appendChild(el);
+  const logEl=el.querySelector(".log");const barEl=el.querySelector(".bar > i");const badge=el.querySelector(".badge");
+  return {
+    log:(msg,lvl="info")=>{const line=document.createElement("div");line.className=lvl;line.textContent=msg;logEl.appendChild(line);logEl.scrollTop=logEl.scrollHeight;},
+    progress:(p)=>{barEl.style.width=Math.max(0,Math.min(100,p))+"%";},
+    status:(s)=>{badge.className="badge "+(s==="success"?"b-ok":s==="failed"?"b-fail":"b-run");badge.textContent=s==="success"?"成功 ✅":s==="failed"?"失败 ❌":"进行中";},
+    el,
+  };
+}
+
+/* ---------- 文件选择 ---------- */
+let selectedFiles=[]; // {file, path}  path = 仓库内相对路径（已去掉顶层文件夹名）
+let projectFolderName=""; // 选中的顶层文件夹名，用于默认仓库名
+function stripTop(p){const i=p.indexOf("/");return i>=0?p.slice(i+1):p;}
+function addFiles(fileList, topIsFolder){
+  for(const f of fileList){
+    let rel=topIsFolder?stripTop(f.webkitRelativePath||f.name):f.name;
+    if(!rel)continue;
+    const seg=rel.split("/");
+    if(seg.some(s=>IGNORE.has(s))){continue;}
+    selectedFiles.push({file:f,path:rel});
+  }
+}
+function refreshFileInfo(){
+  const info=$("fileInfo");
+  if(!selectedFiles.length){info.classList.remove("show");info.textContent="";return;}
+  let total=0;for(const x of selectedFiles)total+=x.file.size;
+  info.classList.add("show");
+  info.innerHTML=`已选择 <b>${selectedFiles.length}</b> 个文件，共 <b>${fmtSize(total)}</b>。`;
+}
+async function readFile(f){
+  const buf=await f.arrayBuffer();
+  return new Uint8Array(buf);
+}
+
+/* 拖拽 + 文件夹遍历 */
+function readDirEntry(entry,path,out){
+  return new Promise((resolve)=>{
+    if(entry.isFile){
+      entry.file((file)=>{out.push({file,path:path});resolve();},()=>resolve());
+    }else if(entry.isDirectory){
+      const reader=entry.createReader();
+      const readBatch=()=>{reader.readEntries((ents)=>{
+        if(!ents.length){resolve();return;}
+        let pending=ents.length;
+        for(const e of ents)readDirEntry(e,path?path+"/"+e.name:e.name,out).then(()=>{if(--pending===0)readBatch();});
+      },()=>resolve());};
+      readBatch();
+    }else resolve();
+  });
+}
+async function handleDrop(items){
+  const out=[];
+  for(const it of items){
+    const e=it.webkitGetAsEntry&&it.webkitGetAsEntry();
+    if(e)await readDirEntry(e,e.name,out);
+  }
+  let count=0;
+  for(const x of out){
+    const seg=x.path.split("/");
+    if(seg.some(s=>IGNORE.has(s)))continue;
+    selectedFiles.push({file:x.file,path:x.path});count++;
+  }
+  refreshFileInfo();
+  if(out.length&&!projectFolderName)projectFolderName=out[0].path.split('/')[0];
+  toast(`已通过拖拽加入 ${count} 个文件`);
+}
+
+/* ---------- 平台发布：Gitee / GitHub（contents API） ---------- */
+function gitFiles(){return selectedFiles;}
+async function pool(items,limit,worker){
+  let i=0;
+  const runners=Array.from({length:Math.min(limit,items.length)},async()=>{
+    while(i<items.length){const idx=i++;await worker(items[idx],idx);}
+  });
+  await Promise.all(runners);
+}
+async function publishGithub(card){
+  const s=loadSettings();const token=s.github_token;
+  if(!token){card.log("未配置 GitHub Token，跳过",'err');card.status('failed');return null;}
+  const name=sanitize($("repoName").value)||sanitize(projectFolderName||"project");
+  card.log(`仓库名：${name}`,'info');
+  // 建仓
+  let owner=s.github_user;
+  const cr=await req("POST","https://api.github.com/user/repos",{
+    headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json","Accept":"application/vnd.github+json"},
+    body:JSON.stringify({name,private:true,description:"Published by 发布小工具 网页版",auto_init:true})
+  });
+  if(cr.ok){card.log("✅ 已创建 GitHub 仓库",'ok');}
+  else if(cr.status===422){card.log("仓库已存在，继续",'warn');}
+  else{card.log(`创建仓库失败 HTTP ${cr.status}：${(cr.json&&cr.json.message)||cr.text}`,'err');card.status('failed');return null;}
+  // 解析 owner
+  if(!owner){const ur=await req("GET","https://api.github.com/user",{headers:{Authorization:`Bearer ${token}`}});owner=ur.json&&ur.json.login;if(!owner){card.log("无法解析账号，请检查 Token",'err');card.status('failed');return null;}}
+  card.log(`账号：${owner}`,'info');
+  // 默认分支
+  let branch="main";
+  const rr=await req("GET",`https://api.github.com/repos/${owner}/${name}`,{headers:{Authorization:`Bearer ${token}`}});
+  if(rr.ok&&rr.json&&rr.json.default_branch)branch=rr.json.default_branch;
+  card.log(`目标分支：${branch}`,'info');
+  const files=gitFiles();const total=files.length;let done=0;
+  card.progress(8);
+  await pool(files,5,async(x)=>{
+    const p=encPath(x.path);
+    try{
+      let sha=null;
+      const gr=await req("GET",`https://api.github.com/repos/${owner}/${name}/contents/${p}?ref=${branch}`,{headers:{Authorization:`Bearer ${token}`}});
+      if(gr.ok&&gr.json)sha=gr.json.sha;
+      const buf=await readFile(x.file);
+      const content=bytesToBase64(buf);
+      const body=JSON.stringify({message:`publish: ${x.path}`,content,branch,sha,
+        committer:{name:"发布小工具",email:"pubkit@local"}});
+      const pr=await req("PUT",`https://api.github.com/repos/${owner}/${name}/contents/${p}`,{
+        headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body});
+      if(pr.ok||pr.status===200){card.log(`↑ ${x.path}`,'ok');}
+      else{card.log(`✗ ${x.path} HTTP ${pr.status}：${(pr.json&&pr.json.message)||pr.text}`.slice(0,200),'err');}
+    }catch(e){card.log(`✗ ${x.path}：${e.message}`,'err');}
+    done++;card.progress(8+Math.round(88*done/total));
+  });
+  const url=`https://github.com/${owner}/${name}`;
+  card.log(`✅ GitHub 发布完成：${url}`,'ok');card.status('success');
+  return {status:"success",url,project:name};
+}
+async function publishGitee(card){
+  const s=loadSettings();const token=s.gitee_token;
+  if(!token){card.log("未配置 Gitee Token，跳过",'err');card.status('failed');return null;}
+  const name=sanitize($("repoName").value)||sanitize(projectFolderName||"project");
+  card.log(`仓库名：${name}`,'info');
+  const gb=new URLSearchParams();
+  gb.set("access_token",token);gb.set("name",name);
+  gb.set("description","Published by 发布小工具 网页版");
+  gb.set("private","true");gb.set("auto_init","true");
+  const cr=await req("POST","https://gitee.com/api/v5/user/repos",{
+    headers:{"Content-Type":"application/x-www-form-urlencoded"},body:gb.toString()
+  });
+  if(cr.ok){card.log("✅ 已创建 Gitee 仓库",'ok');}
+  else if(cr.status===422||cr.status===409){card.log("仓库已存在，继续",'warn');}
+  else{card.log(`创建仓库失败 HTTP ${cr.status}：${(cr.json&&cr.json.message)||cr.text}`,'err');card.status('failed');return null;}
+  let owner=s.gitee_user;
+  if(!owner){const ur=await req("GET",`https://gitee.com/api/v5/user?access_token=${encodeURIComponent(token)}`);owner=ur.json&&ur.json.login;if(!owner){card.log("无法解析账号，请检查 Token",'err');card.status('failed');return null;}}
+  card.log(`账号：${owner}`,'info');
+  let branch="master";
+  const rr=await req("GET",`https://gitee.com/api/v5/repos/${owner}/${name}?access_token=${encodeURIComponent(token)}`);
+  if(rr.ok&&rr.json&&rr.json.default_branch)branch=rr.json.default_branch;
+  card.log(`目标分支：${branch}`,'info');
+  const files=gitFiles();const total=files.length;let done=0;card.progress(8);
+  await pool(files,5,async(x)=>{
+    const p=encPath(x.path);
+    try{
+      let sha=null;
+      const gr=await req("GET",`https://gitee.com/api/v5/repos/${owner}/${name}/contents/${p}?ref=${encodeURIComponent(branch)}&access_token=${encodeURIComponent(token)}`);
+      if(gr.ok&&gr.json)sha=gr.json.sha;
+      const buf=await readFile(x.file);
+      const content=bytesToBase64(buf);
+      const base=`https://gitee.com/api/v5/repos/${owner}/${name}/contents/${p}?access_token=${encodeURIComponent(token)}`;
+      let res;
+      if(sha){res=await req("PUT",base,{headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({message:`publish: ${x.path}`,content,sha,branch,
+          committer:{name:"发布小工具",email:"pubkit@local"}})});}
+      else{res=await req("POST",base,{headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({message:`publish: ${x.path}`,content,branch,
+          committer:{name:"发布小工具",email:"pubkit@local"}})});}
+      if(res.ok){card.log(`↑ ${x.path}`,'ok');}
+      else{card.log(`✗ ${x.path} HTTP ${res.status}：${(res.json&&res.json.message)||res.text}`.slice(0,200),'err');}
+    }catch(e){card.log(`✗ ${x.path}：${e.message}`,'err');}
+    done++;card.progress(8+Math.round(88*done/total));
+  });
+  const url=`https://gitee.com/${owner}/${name}`;
+  card.log(`✅ Gitee 发布完成：${url}`,'ok');card.status('success');
+  return {status:"success",url,project:name};
+}
+
+/* ---------- 平台发布：Cloudflare Pages（直传协议） ---------- */
+function guessMime(p){const m={".html":"text/html",".js":"application/javascript",".css":"text/css",".json":"application/json",
+  ".png":"image/png",".jpg":"image/jpeg",".jpeg":"image/jpeg",".gif":"image/gif",".svg":"image/svg+xml",
+  ".webp":"image/webp",".ico":"image/x-icon",".txt":"text/plain",".woff":"font/woff",".woff2":"font/woff2",
+  ".ttf":"font/ttf",".map":"application/json",".xml":"application/xml",".webmanifest":"application/manifest+json"};
+  const d=p.lastIndexOf(".");return d>=0?(m[p.slice(d).toLowerCase()]||"application/octet-stream"):"application/octet-stream";}
+async function publishCloudflare(card){
+  const s=loadSettings();const token=s.cf_token,account=s.cf_account;
+  if(!token||!account){card.log("未配置 Cloudflare Account ID / Token，跳过",'err');card.status('failed');return null;}
+  const CF=(s.cf_proxy||"").trim().replace(/\/+$/,"")||null;
+  if(!CF){
+    card.log("⚠️ Cloudflare 官方 API 不返回 CORS 头，浏览器无法直连（已实测确认）。",'err');
+    card.log("请在「设置 → Cloudflare」填入一个转发 Worker 地址（必填）后重试。",'err');
+    card.log("Worker 代码与部署步骤见「设置」页 Cloudflare 区块底部折叠说明。",'err');
+    card.status('failed');return null;
+  }
+  const name=sanitize($("repoName").value)||sanitize(projectFolderName||"project");
+  const subdir=($("cfDir").value.trim()).replace(/^\/+|\/+$/g,"");
+  card.log(`项目名：${name}`,'info');
+  // 确保项目存在
+  const chk=await req("GET",`${CF}/client/v4/accounts/${account}/pages/projects/${encodeURIComponent(name)}`,{headers:{Authorization:`Bearer ${token}`}});
+  if(!chk.ok&&(chk.status===400||chk.status===404)){
+    card.log("项目不存在，自动创建…",'info');
+    const mk=await req("POST",`${CF}/client/v4/accounts/${account}/pages/projects`,{
+      headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},
+      body:JSON.stringify({name,production_branch:"production"})});
+    if(!mk.ok){card.log(`创建项目失败：${(mk.json&&mk.json.errors&&mk.json.errors.map(e=>e.message).join("; "))||mk.text}`,'err');card.status('failed');return null;}
+    card.log("✅ 已创建 Cloudflare Pages 项目",'ok');
+  }else if(!chk.ok){card.log(`查询项目失败 HTTP ${chk.status}：${chk.text}`,'err');card.status('failed');return null;}
+  else card.log("✅ Cloudflare Pages 项目已存在",'ok');
+  // 收集文件（按部署目录过滤 + 忽略）
+  let files=selectedFiles;
+  if(subdir)files=files.filter(x=>x.path===subdir||x.path.startsWith(subdir+"/"));
+  // 跳过 functions（直传不支持 Functions）
+  const hasFunc=files.some(x=>x.path==="functions"||x.path.startsWith("functions/")||x.path==="_worker.js");
+  if(hasFunc)card.log("⚠️ 检测到 functions/_worker.js：直传协议不支持 Pages Functions，已跳过（需 wrangler 部署）",'warn');
+  files=files.filter(x=>x.path!=="functions"&&!x.path.startsWith("functions/")&&x.path!=="_worker.js");
+  if(!files.length){card.log("部署目录内没有可上传的静态文件",'err');card.status('failed');return null;}
+  card.log(`待上传 ${files.length} 个文件`,'info');
+  // 计算哈希 + 组装 manifest
+  const manifest={};const payload=[];
+  card.progress(12);
+  for(let i=0;i<files.length;i++){
+    const x=files[i];const buf=await readFile(x.file);
+    if(buf.length>25*1024*1024){card.log(`跳过超大文件(>25MB)：${x.path}`,'warn');continue;}
+    const dot=x.path.lastIndexOf(".");const ext=dot>=0?x.path.slice(dot+1):"";
+    const inputB64=bytesToBase64(buf);
+    const h=blake3hex(new TextEncoder().encode(inputB64+ext)).slice(0,32);
+    manifest["/"+x.path]=h;
+    payload.push({key:h,value:inputB64,metadata:{contentType:guessMime(x.path)},base64:true});
+    card.progress(12+Math.round(23*i/files.length));
+  }
+  if(!payload.length){card.log("没有可用文件",'err');card.status('failed');return null;}
+  // 获取上传令牌
+  const tk=await req("GET",`${CF}/client/v4/accounts/${account}/pages/projects/${encodeURIComponent(name)}/upload-token`,{headers:{Authorization:`Bearer ${token}`}});
+  if(!tk.ok||!tk.json||!tk.json.success){card.log(`获取上传令牌失败 HTTP ${tk.status}：${tk.text}`,'err');card.status('failed');return null;}
+  const jwt=((tk.json.result||{}).jwt||(tk.json.result||{}).upload_jwt||(tk.json.result||{}).token);
+  if(!jwt){card.log("上传令牌缺少 jwt 字段",'err');card.status('failed');return null;}
+  card.log("✅ 已获取上传令牌，开始上传…",'ok');
+  // 上传 blob（分批 ≤1000 且 ≤40MB）
+  const hj={Authorization:`Bearer ${jwt}`,"Content-Type":"application/json"};
+  let uploaded=0,i=0;
+  while(i<payload.length){
+    const batch=[];let size=0;
+    while(i<payload.length&&batch.length<1000&&size<40*1024*1024){batch.push(payload[i]);size+=payload[i].value.length*3/4;i++;}
+    const up=await req("POST",`${CF}/client/v4/pages/assets/upload`,{headers:hj,body:JSON.stringify(batch)});
+    if(!up.ok||!up.json||!up.json.success){card.log(`上传失败 HTTP ${up.status}：${up.text}`,'err');card.status('failed');return null;}
+    uploaded+=batch.length;card.progress(35+Math.round(35*uploaded/payload.length));
+    card.log(`已上传 ${uploaded}/${payload.length}`);
+  }
+  // 注册哈希（best-effort）
+  try{
+    await req("POST",`${CF}/client/v4/pages/assets/upsert-hashes`,{headers:hj,body:JSON.stringify({hashes:payload.map(x=>x.key)})});
+  }catch(e){card.log("注册哈希失败（已忽略）",'warn');}
+  // 创建部署
+  let branch="production";
+  if(chk.ok&&chk.json&&chk.json.result&&chk.json.result.production_branch)branch=chk.json.result.production_branch;
+  card.progress(75);card.log(`创建部署（分支 ${branch}）…`);
+  const fd=new FormData();
+  fd.append("manifest",new Blob([JSON.stringify(manifest)],{type:"application/json"}),"manifest");
+  fd.append("branch",branch);
+  const dep=await req("POST",`${CF}/client/v4/accounts/${account}/pages/projects/${encodeURIComponent(name)}/deployments`,{headers:{Authorization:`Bearer ${token}`},body:fd});
+  if(!dep.ok||!dep.json||!dep.json.success){card.log(`创建部署失败 HTTP ${dep.status}：${dep.text}`,'err');card.status('failed');return null;}
+  const deployId=dep.json.result&&dep.json.result.id;
+  card.log("✅ 部署已创建，等待文件就绪…",'ok');
+  // 轮询
+  if(deployId){
+    for(let n=0;n<30;n++){
+      const st=await req("GET",`${CF}/client/v4/accounts/${account}/pages/projects/${encodeURIComponent(name)}/deployments/${deployId}`,{headers:{Authorization:`Bearer ${token}`}});
+      const res=st.json&&st.json.result;const stage=res&&res.latest_stage;
+      if(stage&&stage.status==="success"){card.log(`部署就绪：${res.file_count} 个文件`,'ok');break;}
+      if(stage&&stage.status==="failure"){card.log("部署未就绪（failure）",'warn');break;}
+      await new Promise(r=>setTimeout(r,2000));
+    }
+  }
+  const url=`https://${name}.pages.dev`;
+  card.log(`✅ Cloudflare Pages 部署成功：${url}`,'ok');card.status('success');
+  return {status:"success",url,project:name};
+}
+
+/* ---------- 开始发布 ---------- */
+async function startPublish(){
+  if(!selectedFiles.length){toast("请先选择本地项目文件夹");return;}
+  const platforms=[];
+  if($("pGitee").checked)platforms.push(["🐞 Gitee",publishGitee]);
+  if($("pGithub").checked)platforms.push(["🐙 GitHub",publishGithub]);
+  if($("pCf").checked)platforms.push(["☁️ Cloudflare",publishCloudflare]);
+  if(!platforms.length){toast("请至少选择一个平台");return;}
+  if(!$("repoName").value.trim()){
+    const dn=projectFolderName||(selectedFiles[0]&&selectedFiles[0].path.split("/")[0])||"project";
+    $("repoName").value=sanitize(dn);
+  }
+  $("startBtn").disabled=true;$("tasks").innerHTML="";
+  const results=[];
+  await Promise.all(platforms.map(async([label,fn])=>{
+    const card=makeCard(label);card.status('running');
+    try{const r=await fn(card);results.push({label,r});}
+    catch(e){card.log("异常："+e.message,'err');card.status('failed');results.push({label,r:null});}
+  }));
+  // 记录历史
+  for(const {label,r} of results){
+    if(!r)continue;
+    addHistory({time:new Date().toLocaleString(),platform:label,project:r.project,status:r.status,url:r.url});
+  }
+  const okN=results.filter(x=>x.r&&x.r.status==="success").length;
+  toast(`发布完成：${okN}/${platforms.length} 个平台成功`);
+  $("startBtn").disabled=false;
+}
+
+/* ---------- 事件绑定 ---------- */
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");$("panel-"+t.dataset.tab).classList.add("active");
+  if(t.dataset.tab==="history")renderHistory();
+}));
+$("drop").addEventListener("click",()=>$("folderInput").click());
+$("pickFiles").addEventListener("click",(e)=>{e.stopPropagation();$("filesInput").click();});
+$("folderInput").addEventListener("change",e=>{selectedFiles=[];projectFolderName="";const f0=e.target.files[0];if(f0&&f0.webkitRelativePath)projectFolderName=f0.webkitRelativePath.split('/')[0];addFiles(e.target.files,true);refreshFileInfo();});
+$("filesInput").addEventListener("change",e=>{projectFolderName="";addFiles(e.target.files,false);refreshFileInfo();});
+const drop=$("drop");
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over");}));
+drop.addEventListener("drop",e=>{if(e.dataTransfer&&e.dataTransfer.items)handleDrop(e.dataTransfer.items);});
+document.querySelectorAll(".eye").forEach(b=>b.addEventListener("click",()=>{
+  const inp=$(b.dataset.eye);inp.type=inp.type==="password"?"text":"password";
+}));
+$("saveSettings").addEventListener("click",()=>{saveSettingsObj(readSettingsFromUI());toast("已保存设置 💾");});
+$("clearSettings").addEventListener("click",()=>{if(confirm("确定清空所有凭据？")){localStorage.removeItem(SET_KEY);applySettingsToUI();toast("已清空");}});
+$("clearHistory").addEventListener("click",()=>{if(confirm("确定清空发布历史？")){localStorage.removeItem(HIS_KEY);renderHistory();}});
+$("startBtn").addEventListener("click",startPublish);
+async function testConn(platform){
+  const s=readSettingsFromUI();
+  if(platform==="gitee"){if(!s.gitee_token){toast("请先填写 Gitee Token");return;}
+    const r=await req("GET",`https://gitee.com/api/v5/user?access_token=${encodeURIComponent(s.gitee_token)}`);
+    toast(r.ok&&r.json&&r.json.login?`Gitee 连接成功：${r.json.login}`:`Gitee 连接失败 HTTP ${r.status}`);}
+  if(platform==="github"){if(!s.github_token){toast("请先填写 GitHub Token");return;}
+    const r=await req("GET","https://api.github.com/user",{headers:{Authorization:`Bearer ${s.github_token}`}});
+    toast(r.ok&&r.json&&r.json.login?`GitHub 连接成功：${r.json.login}`:`GitHub 连接失败 HTTP ${r.status}`);}
+  if(platform==="cf"){if(!s.cf_token||!s.cf_account){toast("请先填写 Cloudflare Account ID / Token");return;}
+    if(!s.cf_proxy||!s.cf_proxy.trim()){toast("Cloudflare 需先填代理地址（官方 API 不支持浏览器直连）");return;}
+    const CF=s.cf_proxy.trim().replace(/\/+$/,"");
+    const r=await req("GET",`${CF}/client/v4/accounts/${s.cf_account}`,{headers:{Authorization:`Bearer ${s.cf_token}`}});
+    toast(r.ok&&r.json&&r.json.success?`Cloudflare 连接成功`:`Cloudflare 连接失败 HTTP ${r.status}`);}
+}
+$("testGitee").addEventListener("click",()=>testConn("gitee"));
+$("testGithub").addEventListener("click",()=>testConn("github"));
+$("testCf").addEventListener("click",()=>testConn("cf"));
+
+applySettingsToUI();
+</script>
+</body>
+</html>
